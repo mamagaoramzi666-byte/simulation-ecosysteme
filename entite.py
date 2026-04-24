@@ -1,29 +1,36 @@
-# entitd.py
-# classe mère: tout etre vivant dans notre écosystème hérite de cette classe
+# entite.py
+# Classe mere : tout etre vivant dans notre ecosysteme herite de cette classe
+
 class EtreVivant:
+
     def __init__(self, x, y, energie):
-        # La position de l'animal sur la grille (x= colonne, y= ligne) :
+        # Verification que les coordonnees sont des entiers
+        if not isinstance(x, int) or not isinstance(y, int):
+            raise TypeError("Les coordonnees x et y doivent etre des entiers.")
+        # Verification que l'energie est un nombre positif
+        if not isinstance(energie, (int, float)) or energie <= 0:
+            raise ValueError("L'energie doit etre un nombre positif.")
+
         self.x = x
         self.y = y
-        # L'énergie de l'animal (quant elle tombe à 0, il meurt)
         self.energie = energie
-        # L'animal est vivant au départ
         self.vivant = True
 
     def est_vivant(self):
-        # Retourne True si l'animal est encore en vie
-        return self.vivant    
-    
+        return self.vivant
+
     def perdre_energie(self, quantite):
-        # L'animal perd de l'énergie à chaque tour
+        if quantite < 0:
+            raise ValueError("La quantite d'energie perdue ne peut pas etre negative.")
         self.energie -= quantite
         if self.energie <= 0:
-            self.vivant = False # Il meurt si energie = 0
+            self.vivant = False
 
     def se_deplacer(self, nouvelle_x, nouvelle_y):
-        # L'animal change de position sur la grille
+        if not isinstance(nouvelle_x, int) or not isinstance(nouvelle_y, int):
+            raise TypeError("Les nouvelles coordonnees doivent etre des entiers.")
         self.x = nouvelle_x
-        self.y = nouvelle_y    
+        self.y = nouvelle_y
+
     def __str__(self):
-        # Permet d'afficher l'animal proprement avec print()
-        return f"EtreVivant en ({self.x}, {self.y}) | Energie: {self.energie}"
+        return f"EtreVivant en ({self.x},{self.y}) | Energie: {self.energie}"
