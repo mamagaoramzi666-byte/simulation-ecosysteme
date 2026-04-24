@@ -2,7 +2,7 @@
 # classe mère: tout etre vivant dans notre écosystème hérite de cette classe
 class EtreVivant:
     def __init__(self, x, y, energie):
-        # La position de l'animal sur la grille (x= colonne, y= ligne)
+        # La position de l'animal sur la grille (x= colonne, y= ligne) :
         self.x = x
         self.y = y
         # L'énergie de l'animal (quant elle tombe à 0, il meurt)
