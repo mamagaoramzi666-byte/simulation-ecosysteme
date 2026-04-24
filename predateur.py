@@ -18,7 +18,7 @@ class Loup(EtreVivant):
         if lapin.est_vivant():
             lapin.vivant = False
             self.energie += 8
-            print(" Le loup en ({self.x}, {self.y}) chasse le lapin en ({lapin.x}, {lapin.y}) !")
+            print(f" Le loup en ({self.x}, {self.y}) chasse le lapin en ({lapin.x}, {lapin.y}) !")
             print(f" Energie du loup après chasse : {self.energie}")
         else:
             print(f" Le loup essaie de chasser mais le lapin est déjà mort.")

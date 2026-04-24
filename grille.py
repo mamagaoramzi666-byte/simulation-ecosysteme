@@ -1,5 +1,5 @@
 # grille.py
-# La grille représente le terrain de notre écosystèmme
+# La grille représente le terrain de notre écosystème
 # C'est ici que les animaux vivent, bougent et interagissent
 
 import random
@@ -7,6 +7,7 @@ from proie import Lapin
 from predateur import Loup
 
 class Grille:
+
     def __init__(self, largeur, hauteur):
         # La taille de notre terrain
         self.largeur = largeur
@@ -14,16 +15,16 @@ class Grille:
         # Liste qui contient tous les animaux vivants
         self.animaux = []
 
-    def ajouter_animal(self,animal):
+    def ajouter_animal(self, animal):
         # On ajoute un animal à la grille
-        self.animaux.apprend(animal)
+        self.animaux.append(animal)
 
     def placer_animaux_aleatoirement(self, nb_lapins, nb_loups):
         # On place les lapins au hasard sur la grille
         for _ in range(nb_lapins):
             x = random.randint(0, self.largeur - 1)
             y = random.randint(0, self.hauteur - 1)
-            self.animaux.append(Loup(x, y))
+            self.animaux.append(Lapin(x, y))
 
         # On place les loups au hasard sur la grille
         for _ in range(nb_loups):
@@ -32,7 +33,7 @@ class Grille:
             self.animaux.append(Loup(x, y))
 
         print(f" {nb_lapins} lapins et {nb_loups} loups placés sur la grille.")
-    
+
     def deplacer_animal(self, animal):
         # L'animal se déplace d'une case au hasard
         # On calcule la nouvelle position sans sortir de la grille

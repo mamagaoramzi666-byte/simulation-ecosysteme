@@ -1,12 +1,12 @@
 # main.py
-# Version interactive - L'utilisateur contrôle un animal
+# Version avec sauvegarde JSON - Bloc 4
 
 from grille import Grille
 from proie import Lapin
 from predateur import Loup
+from sauvegarde import sauvegarder, charger, sauvegarde_existe
 
 def choisir_animal(grille):
-    # On liste tous les animaux vivants avec leur numéro
     print("\n Choisissez votre animal :")
     animaux_vivants = [a for a in grille.animaux if a.est_vivant()]
 
@@ -24,8 +24,7 @@ def choisir_animal(grille):
             print("❌ Entre un chiffre valide.")
 
 def deplacer_manuellement(animal, grille):
-    # L'utilisateur choisit la direction de déplacement
-    print("\n Dans quelle direction voulez-vous aller ?")
+    print("\n  Dans quelle direction voulez-vous aller ?")
     print("  [z] Haut")
     print("  [s] Bas")
     print("  [q] Gauche")
@@ -34,7 +33,6 @@ def deplacer_manuellement(animal, grille):
 
     direction = input("\nVotre choix : ").strip().lower()
 
-    # On calcule la nouvelle position selon la direction
     nouvelle_x = animal.x
     nouvelle_y = animal.y
 
@@ -49,80 +47,169 @@ def deplacer_manuellement(animal, grille):
     elif direction == "x":
         print("  L'animal reste sur place.")
     else:
-        print("Direction invalide, l'animal reste sur place.")
+        print(" Direction invalide, l'animal reste sur place.")
 
     animal.se_deplacer(nouvelle_x, nouvelle_y)
     print(f" Animal déplacé en ({animal.x}, {animal.y})")
 
-def menu_principal():
-    print("=" * 40)
-    print("   SIMULATEUR D'ÉCOSYSTÈME ")
-    print("   Proies & Prédateurs — L2 Info")
-    print("=" * 40)
-
-    # L'utilisateur choisit le nombre d'animaux
-    print("\n Configuration de la simulation :")
+def configurer_nouvelle_partie():
+    # L'utilisateur configure une nouvelle simulation
+    print("\n  Configuration de la simulation :")
     while True:
         try:
             nb_lapins = int(input("Nombre de lapins : "))
-            nb_loups = int(input("Nombre de loups  : "))
-            nb_tours = int(input("Nombre de tours  : "))
+            nb_loups  = int(input("Nombre de loups  : "))
+            nb_tours  = int(input("Nombre de tours  : "))
             break
         except ValueError:
-            print("Entre des chiffres valides.")
+            print(" Entre des chiffres valides.")
 
-    # On crée la grille et on place les animaux
     grille = Grille(largeur=10, hauteur=10)
     grille.placer_animaux_aleatoirement(nb_lapins, nb_loups)
+    return grille, nb_tours
 
+def menu_demarrage():
+    # Menu affiché au lancement du programme
+    print("=" * 40)
+    print("    SIMULATEUR D'ÉCOSYSTÈME ")
+    print("   Proies & Prédateurs — L2 Info")
+    print("=" * 40)
+
+    print("\n Menu principal :")
+    print("  [1] Nouvelle simulation")
+
+    # On affiche l'option charger seulement si une save existe
+    if sauvegarde_existe():
+        print("  [2] Charger la dernière sauvegarde")
+        print("  [3] Quitter")
+        choix_valides = ["1", "2", "3"]
+    else:
+        print("  [2] Quitter")
+        choix_valides = ["1", "2"]
+
+    while True:
+        choix = input("\nVotre choix : ").strip()
+        if choix in choix_valides:
+            return choix
+        print(" Choix invalide, réessaie.")
+
+def menu_en_jeu():
+    # Menu affiché à chaque tour
+    print("\n Que voulez-vous faire ?")
+    print("  [1] Jouer le tour suivant")
+    print("  [2] Sauvegarder et continuer")
+    print("  [3] Sauvegarder et quitter")
+    print("  [4] Quitter sans sauvegarder")
+
+    while True:
+        choix = input("\nVotre choix : ").strip()
+        if choix in ["1", "2", "3", "4"]:
+            return choix
+        print(" Choix invalide, réessaie.")
+
+def jouer_tour(grille, tour, nb_tours):
+    print(f"\n{'=' * 40}")
+    print(f"    TOUR {tour}/{nb_tours}")
+    print(f"{'=' * 40}")
+
+    if len(grille.animaux) == 0:
+        print("\n Tous les animaux sont morts. Fin de simulation.")
+        return False
+
+    # L'utilisateur choisit et déplace son animal
+    animal_choisi = choisir_animal(grille)
+    print(f"\n✅ Vous contrôlez : {animal_choisi}")
+    deplacer_manuellement(animal_choisi, grille)
+
+    # Les autres animaux bougent automatiquement
+    print("\n Les autres animaux bougent automatiquement...")
+    for animal in grille.animaux:
+        if animal.est_vivant() and animal != animal_choisi:
+            grille.deplacer_animal(animal)
+            animal.passer_un_tour()
+            if isinstance(animal, Lapin):
+                animal.manger()
+
+    # L'animal contrôlé passe son tour
+    animal_choisi.passer_un_tour()
+    if isinstance(animal_choisi, Lapin):
+        animal_choisi.manger()
+
+    # Interactions et nettoyage
+    grille.verifier_interactions()
+    grille.supprimer_morts()
+
+    # Affichage
+    grille.afficher_stats()
+    grille.afficher_grille()
+    return True
+
+def menu_principal():
+    choix = menu_demarrage()
+
+    # Nouvelle partie
+    if choix == "1":
+        grille, nb_tours = configurer_nouvelle_partie()
+
+    # Charger sauvegarde
+    elif choix == "2" and sauvegarde_existe():
+        grille = charger()
+        if grille is None:
+            return
+        nb_tours = int(input("Combien de tours voulez-vous jouer ? "))
+
+    # Quitter
+    else:
+        print("\n À bientôt !")
+        return
+
+    # Affichage état initial
     print("\n État initial :")
     grille.afficher_stats()
     grille.afficher_grille()
 
-    # Boucle principale de la simulation
+    # Boucle principale
     for tour in range(1, nb_tours + 1):
-        print(f"\n{'=' * 40}")
-        print(f" TOUR {tour}/{nb_tours}")
-        print(f"{'=' * 40}")
 
-        if len(grille.animaux) == 0:
-            print("\n Tous les animaux sont morts. Fin de simulation.")
-            break
+        # Menu en jeu
+        action = menu_en_jeu()
 
-        # L'utilisateur choisit un animal à contrôler
-        animal_choisi = choisir_animal(grille)
-        print(f"\n Vous contrôlez : {animal_choisi}")
+        if action == "1":
+            # Jouer le tour
+            continuer = jouer_tour(grille, tour, nb_tours)
+            if not continuer:
+                break
 
-        # L'utilisateur déplace son animal
-        deplacer_manuellement(animal_choisi, grille)
+        elif action == "2":
+            # Sauvegarder et continuer
+            sauvegarder(grille)
+            continuer = jouer_tour(grille, tour, nb_tours)
+            if not continuer:
+                break
 
-        # Les autres animaux bougent automatiquement
-        print("\n Les autres animaux bougent automatiquement...")
-        for animal in grille.animaux:
-            if animal.est_vivant() and animal != animal_choisi:
-                grille.deplacer_animal(animal)
-                animal.passer_un_tour()
-                if isinstance(animal, Lapin):
-                    animal.manger()
+        elif action == "3":
+            # Sauvegarder et quitter
+            sauvegarder(grille)
+            print("\n Simulation sauvegardée. À bientôt !")
+            return
 
-        # L'animal contrôlé passe aussi son tour
-        animal_choisi.passer_un_tour()
-        if isinstance(animal_choisi, Lapin):
-            animal_choisi.manger()
+        elif action == "4":
+            # Quitter sans sauvegarder
+            print("\n Simulation abandonnée sans sauvegarde.")
+            return
 
-        # On vérifie les interactions et on nettoie
-        grille.verifier_interactions()
-        grille.supprimer_morts()
-
-        # On affiche l'état après le tour
-        grille.afficher_stats()
-        grille.afficher_grille()
-
-    # Fin de la simulation
+    # Fin normale
     print("\n" + "=" * 40)
-    print(" Simulation terminée !")
+    print("    Simulation terminée !")
     print("=" * 40)
     grille.afficher_stats()
+
+    # Proposer de sauvegarder à la fin
+    print("\n Voulez-vous sauvegarder cette partie ?")
+    print("  [1] Oui")
+    print("  [2] Non")
+    if input("Votre choix : ").strip() == "1":
+        sauvegarder(grille)
 
 if __name__ == "__main__":
     menu_principal()
